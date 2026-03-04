@@ -514,7 +514,8 @@
       <!-- WEEK BANNER AUTOMATICO -->
       <div class="week-banner section">
         <div class="week-info">
-          <div class="week-dates" id="week-dates"></div>
+          <div class="week-badge">Settimana corrente</div>
+          <div class="week-title" id="week-dates"></div>
         </div>
       </div>
 
@@ -750,13 +751,14 @@
 
       const weekNum = getISOWeek(today);
       const { mon, sun } = getWeekBounds(today);
-      const weekLabel = `Settimana ${weekNum}`;
-      const weekDates = `${fmtShort(mon)} – ${fmtShort(sun)}`;
+
+      function fmtDay(d) {
+        return d.toLocaleDateString("it-IT", { day: "numeric", month: "long" });
+      }
 
       document.getElementById("today-str").textContent = fmtFull(today);
-      document.getElementById("week-title").textContent = weekLabel;
-      document.getElementById("week-dates").textContent = weekDates;
-      document.getElementById("week-num").textContent = `W${weekNum}`;
+      document.getElementById("week-dates").textContent =
+        `${fmtDay(mon)} – ${fmtDay(sun)}`;
 
       if (APPS_SCRIPT_URL !== "YOUR_APPS_SCRIPT_URL_HERE") {
         document.getElementById("config-notice").style.display = "none";
@@ -818,11 +820,12 @@
           );
         });
 
+        const weekDates = `${fmtDay(mon)} – ${fmtDay(sun)}`;
         const payload = {
           action: "submitFeedback",
           date: today.toISOString().split("T")[0],
-          weekLabel,
-          weekDates,
+          weekLabel: weekDates,
+          weekDates: weekDates,
           weekNumber: weekNum,
           vote: selectedVote,
           sliders: sliderValues,
