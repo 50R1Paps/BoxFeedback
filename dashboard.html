@@ -1,0 +1,981 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WOD Dashboard · Coach</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+      :root {
+        --bg: #0f0f0f;
+        --surface: #1a1a1a;
+        --surface2: #242424;
+        --accent: #e8ff47;
+        --accent2: #ff4747;
+        --accent3: #47aaff;
+        --text: #f0f0f0;
+        --muted: #666;
+        --border: #2a2a2a;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "DM Sans", sans-serif;
+        min-height: 100vh;
+      }
+
+      /* ── LOGIN SCREEN ── */
+      .login-screen {
+        position: fixed;
+        inset: 0;
+        background: var(--bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 999;
+        flex-direction: column;
+        gap: 0;
+      }
+      .login-screen.hidden {
+        display: none;
+      }
+
+      .login-box {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 2.5rem 2rem;
+        width: 100%;
+        max-width: 360px;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+      .login-logo {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 2rem;
+        letter-spacing: 0.08em;
+      }
+      .login-logo span {
+        color: var(--accent);
+      }
+      .login-title {
+        font-size: 0.75rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-top: -1rem;
+      }
+
+      .login-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+      }
+      .login-field label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+      }
+      .login-field input {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        color: var(--text);
+        font-family: "DM Sans", sans-serif;
+        font-size: 0.95rem;
+        padding: 0.75rem 1rem;
+        outline: none;
+        transition: border-color 0.2s;
+        width: 100%;
+      }
+      .login-field input:focus {
+        border-color: var(--accent);
+      }
+
+      .login-btn {
+        background: var(--accent);
+        color: #0f0f0f;
+        border: none;
+        border-radius: 4px;
+        padding: 0.9rem;
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 1.2rem;
+        letter-spacing: 0.15em;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .login-btn:hover {
+        background: #f5ff70;
+      }
+
+      .login-error {
+        font-size: 0.78rem;
+        color: var(--accent2);
+        text-align: center;
+        min-height: 1rem;
+        transition: opacity 0.2s;
+      }
+
+      /* ── MAIN LAYOUT ── */
+      .app {
+        display: none;
+      }
+      .app.visible {
+        display: block;
+      }
+
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 220px;
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        padding: 2rem 1.5rem;
+        z-index: 10;
+      }
+      .sidebar-logo {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 1.8rem;
+        letter-spacing: 0.08em;
+        margin-bottom: 2.5rem;
+      }
+      .sidebar-logo span {
+        color: var(--accent);
+      }
+      .nav-label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--muted);
+        margin-bottom: 0.75rem;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.6rem 0.75rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        color: var(--muted);
+        transition: all 0.2s;
+        margin-bottom: 0.25rem;
+        text-decoration: none;
+      }
+      .nav-item:hover {
+        color: var(--text);
+        background: var(--surface2);
+      }
+      .nav-item.active {
+        color: var(--accent);
+        background: rgba(232, 255, 71, 0.07);
+      }
+      .sidebar-spacer {
+        flex: 1;
+      }
+      .sidebar-footer {
+        font-size: 0.7rem;
+        color: var(--muted);
+        border-top: 1px solid var(--border);
+        padding-top: 1rem;
+      }
+      .logout-btn {
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-size: 0.75rem;
+        cursor: pointer;
+        padding: 0;
+        margin-top: 0.5rem;
+        transition: color 0.2s;
+        font-family: "DM Sans", sans-serif;
+      }
+      .logout-btn:hover {
+        color: var(--accent2);
+      }
+
+      .main {
+        margin-left: 220px;
+        padding: 2.5rem 2rem;
+        max-width: 1100px;
+      }
+
+      .page-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 2.5rem;
+      }
+      .page-title {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 2.5rem;
+        letter-spacing: 0.05em;
+      }
+      .page-title small {
+        display: block;
+        font-family: "DM Sans", sans-serif;
+        font-size: 0.8rem;
+        font-weight: 400;
+        color: var(--muted);
+        letter-spacing: 0;
+        margin-bottom: 0.3rem;
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 0.75rem;
+      }
+      .btn {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 0.6rem 1.25rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: "DM Sans", sans-serif;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+      }
+      .btn:hover {
+        border-color: #444;
+      }
+      .btn.primary {
+        background: var(--accent);
+        color: #0f0f0f;
+        border-color: var(--accent);
+        font-weight: 600;
+      }
+      .btn.primary:hover {
+        background: #f5ff70;
+      }
+
+      /* ── KPI ── */
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      .kpi-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 1.25rem;
+      }
+      .kpi-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        margin-bottom: 0.75rem;
+      }
+      .kpi-value {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 2.2rem;
+        letter-spacing: 0.05em;
+        line-height: 1;
+      }
+      .kpi-sub {
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-top: 0.4rem;
+      }
+      .kpi-card.positive .kpi-value {
+        color: var(--accent);
+      }
+      .kpi-card.negative .kpi-value {
+        color: var(--accent2);
+      }
+      .kpi-card.info .kpi-value {
+        color: var(--accent3);
+      }
+
+      /* ── CARDS ── */
+      .charts-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      .card-title {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 1.1rem;
+        letter-spacing: 0.08em;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .card-title span {
+        font-family: "DM Sans", sans-serif;
+        font-size: 0.7rem;
+        font-weight: 400;
+        color: var(--muted);
+        letter-spacing: 0.05em;
+      }
+
+      /* ── SLIDER AVG TABLE ── */
+      .slider-avg-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.75rem;
+      }
+      .slider-avg-item {
+        background: var(--surface2);
+        border-radius: 4px;
+        padding: 0.875rem 1rem;
+        text-align: center;
+      }
+      .slider-avg-icon {
+        font-size: 1.2rem;
+        margin-bottom: 0.4rem;
+      }
+      .slider-avg-label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin-bottom: 0.5rem;
+      }
+      .slider-avg-value {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 1.8rem;
+        letter-spacing: 0.05em;
+        line-height: 1;
+      }
+      .slider-avg-value.low {
+        color: var(--accent2);
+      }
+      .slider-avg-value.mid {
+        color: #ffaa47;
+      }
+      .slider-avg-value.high {
+        color: var(--accent);
+      }
+      .slider-avg-value.none {
+        color: var(--muted);
+      }
+
+      /* ── HISTORY TABLE ── */
+      .history-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+      }
+      .history-table th {
+        text-align: left;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .history-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .history-table tr:last-child td {
+        border-bottom: none;
+      }
+      .history-table tr:hover td {
+        background: var(--surface2);
+      }
+      .score-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: var(--surface2);
+        border-radius: 100px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+      }
+      .score-pill.good {
+        background: rgba(232, 255, 71, 0.1);
+        color: var(--accent);
+      }
+      .score-pill.bad {
+        background: rgba(255, 71, 71, 0.1);
+        color: var(--accent2);
+      }
+      .mini-val {
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+      .mini-val.low {
+        color: var(--accent2);
+      }
+      .mini-val.mid {
+        color: #ffaa47;
+      }
+      .mini-val.high {
+        color: var(--accent);
+      }
+      .mini-val.none {
+        color: var(--muted);
+      }
+
+      /* ── LOADING ── */
+      .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem;
+        color: var(--muted);
+        font-size: 0.9rem;
+        gap: 0.75rem;
+      }
+      .spinner {
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--border);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* ── WEEK SELECTOR ── */
+      .week-selector {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+      }
+      .week-pill {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 100px;
+        padding: 0.35rem 0.9rem;
+        font-size: 0.78rem;
+        cursor: pointer;
+        color: var(--muted);
+        transition: all 0.2s;
+      }
+      .week-pill:hover {
+        color: var(--text);
+      }
+      .week-pill.active {
+        background: rgba(232, 255, 71, 0.1);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      @media (max-width: 900px) {
+        .sidebar {
+          display: none;
+        }
+        .main {
+          margin-left: 0;
+          padding: 1.5rem 1rem;
+        }
+        .kpi-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .charts-grid {
+          grid-template-columns: 1fr;
+        }
+        .slider-avg-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ── LOGIN SCREEN ── -->
+    <div class="login-screen" id="login-screen">
+      <div class="login-box">
+        <div>
+          <div class="login-logo">WOD<span>.</span>BOX</div>
+          <div class="login-title">Area riservata coach</div>
+        </div>
+        <div class="login-field">
+          <label>Password</label>
+          <input
+            type="password"
+            id="pwd-input"
+            placeholder="••••••••"
+            onkeydown="if (event.key === 'Enter') checkPassword();"
+          />
+        </div>
+        <div class="login-error" id="login-error"></div>
+        <button class="login-btn" onclick="checkPassword()">ACCEDI</button>
+      </div>
+    </div>
+
+    <!-- ── APP ── -->
+    <div class="app" id="app">
+      <aside class="sidebar">
+        <div class="sidebar-logo">WOD<span>.</span>BOX</div>
+        <div class="nav-label">Navigazione</div>
+        <a href="index.html" class="nav-item">📋 Invia Feedback</a>
+        <a href="dashboard.html" class="nav-item active">📊 Dashboard</a>
+        <div class="sidebar-spacer"></div>
+        <div class="sidebar-footer">
+          Uso interno · Coach only
+          <br />
+          <button class="logout-btn" onclick="logout()">⬡ Esci</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="page-header">
+          <div class="page-title">
+            <small>Pannello Coach</small>
+            ANALYTICS
+          </div>
+          <div class="header-actions">
+            <button class="btn" onclick="exportCSV()">⬇ Esporta CSV</button>
+            <button class="btn primary" onclick="loadData()">↻ Aggiorna</button>
+          </div>
+        </div>
+
+        <!-- KPI -->
+        <div class="kpi-grid">
+          <div class="kpi-card positive">
+            <div class="kpi-label">👍 Pollici Su</div>
+            <div class="kpi-value" id="kpi-up">–</div>
+            <div class="kpi-sub" id="kpi-up-sub">ultima settimana</div>
+          </div>
+          <div class="kpi-card negative">
+            <div class="kpi-label">👎 Pollici Giù</div>
+            <div class="kpi-value" id="kpi-down">–</div>
+            <div class="kpi-sub" id="kpi-down-sub">ultima settimana</div>
+          </div>
+          <div class="kpi-card info">
+            <div class="kpi-label">📊 Score WOD</div>
+            <div class="kpi-value" id="kpi-score">–</div>
+            <div class="kpi-sub">% pollici su · ultima settimana</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">📅 Settimane</div>
+            <div class="kpi-value" id="kpi-weeks">–</div>
+            <div class="kpi-sub">tracciate totali</div>
+          </div>
+        </div>
+
+        <!-- Grafico andamento -->
+        <div class="charts-grid">
+          <div class="card">
+            <div class="card-title">
+              Andamento voti WOD <span>settimana per settimana</span>
+            </div>
+            <canvas id="trend-chart" height="200"></canvas>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              Media slider <span>ultima settimana</span>
+            </div>
+            <canvas id="radar-chart" height="200"></canvas>
+          </div>
+        </div>
+
+        <!-- Media slider per settimana selezionata -->
+        <div class="card">
+          <div class="card-title">
+            Medie slider per settimana <span>clicca una settimana</span>
+          </div>
+          <div class="week-selector" id="week-selector"></div>
+          <div class="slider-avg-grid" id="slider-avg-grid">
+            <div class="loading">
+              <div class="spinner"></div>
+              Caricamento...
+            </div>
+          </div>
+        </div>
+
+        <!-- Storico -->
+        <div class="card">
+          <div class="card-title">Storico settimane</div>
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Settimana</th>
+                <th>Periodo</th>
+                <th>👍</th>
+                <th>👎</th>
+                <th>Score</th>
+                <th>🏠 Atm.</th>
+                <th>📋 Prog.</th>
+                <th>🔀 Var.</th>
+                <th>🔥 Int.</th>
+                <th>🎙️ Coach</th>
+              </tr>
+            </thead>
+            <tbody id="history-body"></tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      // ─── CONFIG ─────────────────────────────────────────────────────────
+      const APPS_SCRIPT_URL =
+        "https://script.google.com/macros/s/AKfycbx4dJc8azVk2yMQuEp9xMKIZjaFH8ayAnOPMeRCJkCSic3LSMX3n45wMii5pstTM3TkpA/exec";
+
+      // Password di accesso alla dashboard.
+      // Cambiala con qualcosa di tuo — non è crittografia forte ma è
+      // sufficiente per tenere fuori utenti non tecnici da una pagina pubblica.
+      const DASHBOARD_PASSWORD = "Famu2001";
+      // ────────────────────────────────────────────────────────────────────
+
+      const SESSION_KEY = "wod_coach_auth";
+      let allWeeks = [];
+      let selectedWeekIdx = null;
+      let trendChart, radarChart;
+
+      // ── Auth ─────────────────────────────────────────────────────────────
+      function checkPassword() {
+        const val = document.getElementById("pwd-input").value;
+        if (val === DASHBOARD_PASSWORD) {
+          sessionStorage.setItem(SESSION_KEY, "1");
+          document.getElementById("login-screen").classList.add("hidden");
+          document.getElementById("app").classList.add("visible");
+          loadData();
+        } else {
+          const err = document.getElementById("login-error");
+          err.textContent = "Password errata. Riprova.";
+          document.getElementById("pwd-input").value = "";
+          setTimeout(() => (err.textContent = ""), 2500);
+        }
+      }
+
+      function logout() {
+        sessionStorage.removeItem(SESSION_KEY);
+        document.getElementById("app").classList.remove("visible");
+        document.getElementById("login-screen").classList.remove("hidden");
+        document.getElementById("pwd-input").value = "";
+      }
+
+      // Controlla sessione già attiva
+      if (sessionStorage.getItem(SESSION_KEY) === "1") {
+        document.getElementById("login-screen").classList.add("hidden");
+        document.getElementById("app").classList.add("visible");
+        loadData();
+      }
+
+      // ── Load data ─────────────────────────────────────────────────────────
+      function loadData() {
+        if (APPS_SCRIPT_URL === "YOUR_APPS_SCRIPT_URL_HERE") {
+          renderDashboard(getDemoData());
+          return;
+        }
+        fetch(APPS_SCRIPT_URL + "?action=getDashboard")
+          .then((r) => r.json())
+          .then((data) => renderDashboard(data))
+          .catch(() => renderDashboard(getDemoData()));
+      }
+
+      // ── Demo data ─────────────────────────────────────────────────────────
+      function getDemoData() {
+        return {
+          weeks: [
+            {
+              label: "Sett. 7",
+              period: "10–16 Feb",
+              up: 12,
+              down: 9,
+              sliderAvg: {
+                Atmosfera: 7,
+                Programmazione: 5,
+                Varietà: 4,
+                Intensità: 8,
+                Coaching: 7,
+              },
+            },
+            {
+              label: "Sett. 8",
+              period: "17–23 Feb",
+              up: 21,
+              down: 2,
+              sliderAvg: {
+                Atmosfera: 9,
+                Programmazione: 8,
+                Varietà: 8,
+                Intensità: 7,
+                Coaching: 9,
+              },
+            },
+            {
+              label: "Sett. 9",
+              period: "24 Feb–2 Mar",
+              up: 15,
+              down: 6,
+              sliderAvg: {
+                Atmosfera: 8,
+                Programmazione: 7,
+                Varietà: 6,
+                Intensità: 9,
+                Coaching: 8,
+              },
+            },
+            {
+              label: "Sett. 10",
+              period: "3–9 Mar",
+              up: 18,
+              down: 4,
+              sliderAvg: {
+                Atmosfera: 8,
+                Programmazione: 8,
+                Varietà: 7,
+                Intensità: 6,
+                Coaching: 9,
+              },
+            },
+          ],
+        };
+      }
+
+      // ── Render ────────────────────────────────────────────────────────────
+      function renderDashboard(data) {
+        allWeeks = data.weeks || [];
+        if (allWeeks.length === 0) return;
+
+        const last = allWeeks[allWeeks.length - 1];
+        const total = last.up + last.down;
+        const score = total > 0 ? Math.round((last.up / total) * 100) : 0;
+
+        document.getElementById("kpi-up").textContent = last.up;
+        document.getElementById("kpi-down").textContent = last.down;
+        document.getElementById("kpi-score").textContent = score + "%";
+        document.getElementById("kpi-weeks").textContent = allWeeks.length;
+        document.getElementById("kpi-up-sub").textContent = last.label;
+        document.getElementById("kpi-down-sub").textContent = last.label;
+
+        renderTrendChart(allWeeks);
+        renderWeekSelector(allWeeks);
+        selectWeek(allWeeks.length - 1);
+        renderHistory(allWeeks);
+      }
+
+      function renderTrendChart(weeks) {
+        const ctx = document.getElementById("trend-chart").getContext("2d");
+        if (trendChart) trendChart.destroy();
+        trendChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: weeks.map((w) => w.label),
+            datasets: [
+              {
+                label: "👍 Su",
+                data: weeks.map((w) => w.up),
+                backgroundColor: "rgba(232,255,71,0.7)",
+                borderRadius: 3,
+              },
+              {
+                label: "👎 Giù",
+                data: weeks.map((w) => w.down),
+                backgroundColor: "rgba(255,71,71,0.5)",
+                borderRadius: 3,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                labels: {
+                  color: "#888",
+                  font: { family: "DM Sans", size: 11 },
+                },
+              },
+            },
+            scales: {
+              x: {
+                ticks: { color: "#666", font: { family: "DM Sans" } },
+                grid: { color: "#2a2a2a" },
+              },
+              y: {
+                ticks: { color: "#666", font: { family: "DM Sans" } },
+                grid: { color: "#2a2a2a" },
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+      }
+
+      function renderRadarChart(sliderAvg) {
+        const ctx = document.getElementById("radar-chart").getContext("2d");
+        if (radarChart) radarChart.destroy();
+        const labels = [
+          "Atmosfera",
+          "Programmazione",
+          "Varietà",
+          "Intensità",
+          "Coaching",
+        ];
+        const values = labels.map((l) => sliderAvg?.[l] ?? 0);
+        radarChart = new Chart(ctx, {
+          type: "radar",
+          data: {
+            labels,
+            datasets: [
+              {
+                data: values,
+                backgroundColor: "rgba(232,255,71,0.1)",
+                borderColor: "rgba(232,255,71,0.8)",
+                pointBackgroundColor: "var(--accent)",
+                pointRadius: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            scales: {
+              r: {
+                min: 0,
+                max: 10,
+                ticks: { stepSize: 2, color: "#555", font: { size: 10 } },
+                grid: { color: "#2a2a2a" },
+                pointLabels: {
+                  color: "#888",
+                  font: { family: "DM Sans", size: 11 },
+                },
+                angleLines: { color: "#2a2a2a" },
+              },
+            },
+            plugins: { legend: { display: false } },
+          },
+        });
+      }
+
+      function renderWeekSelector(weeks) {
+        document.getElementById("week-selector").innerHTML = weeks
+          .map(
+            (w, i) =>
+              `<div class="week-pill" id="pill-${i}" onclick="selectWeek(${i})">${w.label}</div>`,
+          )
+          .join("");
+      }
+
+      function selectWeek(idx) {
+        selectedWeekIdx = idx;
+        document
+          .querySelectorAll(".week-pill")
+          .forEach((p, i) => p.classList.toggle("active", i === idx));
+
+        const w = allWeeks[idx];
+        renderSliderAvg(w.sliderAvg);
+        renderRadarChart(w.sliderAvg);
+      }
+
+      function valClass(v) {
+        if (v === null || v === undefined) return "none";
+        return v <= 3 ? "low" : v <= 6 ? "mid" : "high";
+      }
+
+      function renderSliderAvg(avg) {
+        const items = [
+          { icon: "🏠", label: "Atmosfera", key: "Atmosfera" },
+          { icon: "📋", label: "Programmazione", key: "Programmazione" },
+          { icon: "🔀", label: "Varietà", key: "Varietà" },
+          { icon: "🔥", label: "Intensità", key: "Intensità" },
+          { icon: "🎙️", label: "Coaching", key: "Coaching" },
+        ];
+        document.getElementById("slider-avg-grid").innerHTML = items
+          .map((it) => {
+            const v = avg?.[it.key];
+            const cls = valClass(v);
+            return `
+        <div class="slider-avg-item">
+          <div class="slider-avg-icon">${it.icon}</div>
+          <div class="slider-avg-label">${it.label}</div>
+          <div class="slider-avg-value ${cls}">${v !== null && v !== undefined ? v : "–"}</div>
+        </div>`;
+          })
+          .join("");
+      }
+
+      function renderHistory(weeks) {
+        document.getElementById("history-body").innerHTML = [...weeks]
+          .reverse()
+          .map((w) => {
+            const total = w.up + w.down;
+            const score = total > 0 ? Math.round((w.up / total) * 100) : 0;
+            const cls = score >= 60 ? "good" : "bad";
+            const avg = w.sliderAvg || {};
+            const cell = (key) => {
+              const v = avg[key];
+              const c = valClass(v);
+              return `<td><span class="mini-val ${c}">${v !== null && v !== undefined ? v : "–"}</span></td>`;
+            };
+            return `<tr>
+        <td><strong>${w.label}</strong></td>
+        <td style="color:var(--muted);font-size:0.8rem">${w.period || ""}</td>
+        <td style="color:var(--accent)">${w.up}</td>
+        <td style="color:var(--accent2)">${w.down}</td>
+        <td><span class="score-pill ${cls}">${score}%</span></td>
+        ${cell("Atmosfera")}${cell("Programmazione")}${cell("Varietà")}${cell("Intensità")}${cell("Coaching")}
+      </tr>`;
+          })
+          .join("");
+      }
+
+      // ── Export CSV ────────────────────────────────────────────────────────
+      function exportCSV() {
+        const headers = [
+          "Settimana",
+          "Periodo",
+          "Pollici Su",
+          "Pollici Giù",
+          "Score %",
+          "Atmosfera",
+          "Programmazione",
+          "Varietà",
+          "Intensità",
+          "Coaching",
+        ];
+        const rows = allWeeks.map((w) => {
+          const total = w.up + w.down;
+          const score = total > 0 ? Math.round((w.up / total) * 100) : 0;
+          const a = w.sliderAvg || {};
+          return [
+            w.label,
+            w.period || "",
+            w.up,
+            w.down,
+            score,
+            a.Atmosfera ?? "",
+            a.Programmazione ?? "",
+            a["Varietà"] ?? "",
+            a["Intensità"] ?? "",
+            a.Coaching ?? "",
+          ];
+        });
+        const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `wod-feedback-${new Date().toISOString().split("T")[0]}.csv`;
+        a.click();
+      }
+    </script>
+  </body>
+</html>

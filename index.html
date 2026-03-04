@@ -1,0 +1,892 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WOD Feedback</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0f0f0f;
+        --surface: #1a1a1a;
+        --surface2: #242424;
+        --accent: #e8ff47;
+        --accent2: #ff4747;
+        --text: #f0f0f0;
+        --muted: #666;
+        --border: #2a2a2a;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "DM Sans", sans-serif;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 0;
+      }
+      .container {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 5rem;
+        position: relative;
+        z-index: 1;
+      }
+      header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .logo {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 2.8rem;
+        letter-spacing: 0.05em;
+        line-height: 1;
+      }
+      .logo span {
+        color: var(--accent);
+      }
+      .today-date {
+        font-size: 0.7rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        text-align: right;
+      }
+      .today-date strong {
+        display: block;
+        font-size: 0.95rem;
+        color: var(--text);
+        font-weight: 500;
+        margin-top: 2px;
+      }
+      .week-banner {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 0.9rem 1.25rem;
+        margin-bottom: 2.5rem;
+        border-radius: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+      .week-badge {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+        margin-bottom: 0.3rem;
+      }
+      .week-title {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 1.35rem;
+        letter-spacing: 0.08em;
+      }
+      .week-dates {
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-top: 0.15rem;
+      }
+      .week-num {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 2.5rem;
+        color: rgba(232, 255, 71, 0.15);
+        letter-spacing: 0.05em;
+        line-height: 1;
+      }
+      .section {
+        margin-bottom: 2.5rem;
+        animation: fadeUp 0.5s ease both;
+      }
+      .section-header {
+        display: flex;
+        align-items: baseline;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+      }
+      .section-title {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 1.2rem;
+        letter-spacing: 0.1em;
+      }
+      .section-sub {
+        font-size: 0.7rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .divider {
+        height: 1px;
+        background: var(--border);
+        margin-bottom: 2.5rem;
+      }
+      .vote-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+      .vote-btn {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 1.75rem 1rem;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.6rem;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      .vote-btn::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .vote-btn.up::after {
+        background: radial-gradient(
+          circle at center,
+          rgba(232, 255, 71, 0.08),
+          transparent 70%
+        );
+      }
+      .vote-btn.down::after {
+        background: radial-gradient(
+          circle at center,
+          rgba(255, 71, 71, 0.08),
+          transparent 70%
+        );
+      }
+      .vote-btn:hover {
+        transform: translateY(-2px);
+      }
+      .vote-btn:hover::after,
+      .vote-btn.selected::after {
+        opacity: 1;
+      }
+      .vote-btn.selected.up {
+        border-color: var(--accent);
+        background: rgba(232, 255, 71, 0.05);
+      }
+      .vote-btn.selected.down {
+        border-color: var(--accent2);
+        background: rgba(255, 71, 71, 0.05);
+      }
+      .vote-icon {
+        font-size: 2.2rem;
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .vote-btn:hover .vote-icon,
+      .vote-btn.selected .vote-icon {
+        transform: scale(1.2);
+      }
+      .vote-label {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 1rem;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        transition: color 0.2s;
+      }
+      .vote-btn.selected.up .vote-label {
+        color: var(--accent);
+      }
+      .vote-btn.selected.down .vote-label {
+        color: var(--accent2);
+      }
+      .questions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+      .question-item {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 1.1rem 1.25rem 1.25rem;
+        transition: border-color 0.2s;
+      }
+      .question-item.touched {
+        border-color: #3a3a3a;
+      }
+      .q-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+      .q-icon-text {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+      }
+      .q-icon {
+        font-size: 1.1rem;
+        margin-top: 1px;
+        flex-shrink: 0;
+      }
+      .q-text {
+        font-size: 0.9rem;
+        font-weight: 500;
+        line-height: 1.4;
+      }
+      .q-hint {
+        font-size: 0.72rem;
+        color: var(--muted);
+        margin-top: 0.2rem;
+        font-style: italic;
+      }
+      .q-value-badge {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 1.6rem;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+        min-width: 32px;
+        text-align: right;
+        line-height: 1;
+        transition: color 0.2s;
+        flex-shrink: 0;
+      }
+      .q-value-badge.low {
+        color: var(--accent2);
+      }
+      .q-value-badge.mid {
+        color: #ffaa47;
+      }
+      .q-value-badge.high {
+        color: var(--accent);
+      }
+      input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--border);
+        outline: none;
+        cursor: pointer;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--accent);
+        cursor: pointer;
+        box-shadow: 0 0 0 3px rgba(232, 255, 71, 0.15);
+        transition:
+          box-shadow 0.2s,
+          transform 0.2s;
+      }
+      input[type="range"]::-webkit-slider-thumb:hover {
+        box-shadow: 0 0 0 6px rgba(232, 255, 71, 0.2);
+        transform: scale(1.1);
+      }
+      input[type="range"]::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--accent);
+        cursor: pointer;
+        border: none;
+      }
+      .slider-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.5rem;
+      }
+      .slider-labels span {
+        font-size: 0.65rem;
+        color: var(--muted);
+      }
+
+      .submit-btn {
+        width: 100%;
+        background: var(--accent);
+        color: #0f0f0f;
+        border: none;
+        border-radius: 4px;
+        padding: 1.1rem;
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 1.3rem;
+        letter-spacing: 0.15em;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .submit-btn:hover {
+        background: #f5ff70;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 30px rgba(232, 255, 71, 0.2);
+      }
+      .submit-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+      .submit-hint {
+        text-align: center;
+        font-size: 0.7rem;
+        color: var(--muted);
+        margin-top: 0.75rem;
+        letter-spacing: 0.05em;
+      }
+      .success-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: var(--bg);
+        z-index: 100;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 1.25rem;
+        text-align: center;
+        padding: 2rem;
+      }
+      .success-overlay.show {
+        display: flex;
+      }
+      .success-icon {
+        font-size: 4rem;
+        animation: bounceIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .success-title {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 3rem;
+        letter-spacing: 0.1em;
+        color: var(--accent);
+        animation: fadeUp 0.4s ease 0.2s both;
+      }
+      .success-sub {
+        color: var(--muted);
+        font-size: 0.9rem;
+        max-width: 320px;
+        line-height: 1.5;
+        animation: fadeUp 0.4s ease 0.3s both;
+      }
+      .success-summary {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 1rem 1.5rem;
+        width: 100%;
+        max-width: 360px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        animation: fadeUp 0.4s ease 0.35s both;
+      }
+      .success-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+      }
+      .success-row .label {
+        color: var(--muted);
+      }
+      .success-row .val {
+        font-weight: 500;
+      }
+      .success-reset {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 0.75rem 2rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: "DM Sans", sans-serif;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        animation: fadeUp 0.4s ease 0.45s both;
+      }
+      .success-reset:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .toast {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%) translateY(4rem);
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 0.75rem 1.5rem;
+        border-radius: 100px;
+        font-size: 0.85rem;
+        transition: transform 0.3s ease;
+        z-index: 200;
+        white-space: nowrap;
+      }
+      .toast.show {
+        transform: translateX(-50%) translateY(0);
+      }
+      .toast.error {
+        border-color: var(--accent2);
+        color: var(--accent2);
+      }
+      .config-notice {
+        background: rgba(232, 255, 71, 0.04);
+        border: 1px solid rgba(232, 255, 71, 0.18);
+        border-radius: 4px;
+        padding: 0.875rem 1rem;
+        margin-bottom: 2rem;
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+      .config-notice strong {
+        color: var(--accent);
+      }
+      @keyframes bounceIn {
+        from {
+          transform: scale(0);
+        }
+        to {
+          transform: scale(1);
+        }
+      }
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .section:nth-child(1) {
+        animation-delay: 0.05s;
+      }
+      .section:nth-child(2) {
+        animation-delay: 0.12s;
+      }
+      .section:nth-child(3) {
+        animation-delay: 0.19s;
+      }
+      .section:nth-child(4) {
+        animation-delay: 0.26s;
+      }
+      .section:nth-child(5) {
+        animation-delay: 0.33s;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="logo">WOD<span>.</span>FEEDBACK</div>
+        <div class="today-date">
+          <span>Oggi</span><strong id="today-str"></strong>
+        </div>
+      </header>
+
+      <div class="config-notice" id="config-notice">
+        ⚙️ <strong>Setup richiesto:</strong> Inserisci l'URL del tuo Google Apps
+        Script nella variabile <code>APPS_SCRIPT_URL</code> in fondo a questa
+        pagina.
+      </div>
+
+      <!-- WEEK BANNER AUTOMATICO -->
+      <div class="week-banner section">
+        <div class="week-info">
+          <div class="week-badge">Settimana corrente</div>
+          <div class="week-title" id="week-title">Settimana –</div>
+          <div class="week-dates" id="week-dates"></div>
+        </div>
+        <div class="week-num" id="week-num"></div>
+      </div>
+
+      <!-- 1. VOTO WOD OGGI -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">WOD di oggi</div>
+          <div class="section-sub">obbligatorio</div>
+        </div>
+        <div class="vote-buttons">
+          <button class="vote-btn up" id="btn-up" onclick="selectVote('up')">
+            <span class="vote-icon">👍</span>
+            <span class="vote-label">Mi è piaciuto</span>
+          </button>
+          <button
+            class="vote-btn down"
+            id="btn-down"
+            onclick="selectVote('down')"
+          >
+            <span class="vote-icon">👎</span>
+            <span class="vote-label">Non mi ha convinto</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 2. SLIDER SETTIMANALI -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Valuta questa settimana</div>
+          <div class="section-sub">scala 1–10 · opzionale</div>
+        </div>
+        <div class="questions-list">
+          <div class="question-item" id="q-item-0">
+            <div class="q-top">
+              <div class="q-icon-text">
+                <span class="q-icon">🏠</span>
+                <div>
+                  <div class="q-text">Atmosfera e clima del box</div>
+                  <div class="q-hint">
+                    Come ti senti nell'ambiente generale? È motivante,
+                    accogliente?
+                  </div>
+                </div>
+              </div>
+              <div class="q-value-badge" id="qval-0">–</div>
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="10"
+              value="5"
+              id="q-0"
+              oninput="updateSlider(0)"
+            />
+            <div class="slider-labels">
+              <span>1 · Per niente</span><span>10 · Eccellente</span>
+            </div>
+          </div>
+
+          <div class="question-item" id="q-item-1">
+            <div class="q-top">
+              <div class="q-icon-text">
+                <span class="q-icon">📋</span>
+                <div>
+                  <div class="q-text">
+                    Qualità della programmazione generale
+                  </div>
+                  <div class="q-hint">
+                    Struttura della settimana, progressione e logica dei
+                    workout.
+                  </div>
+                </div>
+              </div>
+              <div class="q-value-badge" id="qval-1">–</div>
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="10"
+              value="5"
+              id="q-1"
+              oninput="updateSlider(1)"
+            />
+            <div class="slider-labels">
+              <span>1 · Scarsa</span><span>10 · Ottima</span>
+            </div>
+          </div>
+
+          <div class="question-item" id="q-item-2">
+            <div class="q-top">
+              <div class="q-icon-text">
+                <span class="q-icon">🔀</span>
+                <div>
+                  <div class="q-text">Varietà degli esercizi e movimenti</div>
+                  <div class="q-hint">
+                    C'è abbastanza diversità nelle modalità di lavoro?
+                  </div>
+                </div>
+              </div>
+              <div class="q-value-badge" id="qval-2">–</div>
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="10"
+              value="5"
+              id="q-2"
+              oninput="updateSlider(2)"
+            />
+            <div class="slider-labels">
+              <span>1 · Ripetitiva</span><span>10 · Molto varia</span>
+            </div>
+          </div>
+
+          <div class="question-item" id="q-item-3">
+            <div class="q-top">
+              <div class="q-icon-text">
+                <span class="q-icon">🔥</span>
+                <div>
+                  <div class="q-text">Difficoltà e intensità percepita</div>
+                  <div class="q-hint">
+                    I carichi e l'intensità erano adeguati al tuo livello?
+                  </div>
+                </div>
+              </div>
+              <div class="q-value-badge" id="qval-3">–</div>
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="10"
+              value="5"
+              id="q-3"
+              oninput="updateSlider(3)"
+            />
+            <div class="slider-labels">
+              <span>1 · Troppo facile</span><span>10 · Troppo dura</span>
+            </div>
+          </div>
+
+          <div class="question-item" id="q-item-4">
+            <div class="q-top">
+              <div class="q-icon-text">
+                <span class="q-icon">🎙️</span>
+                <div>
+                  <div class="q-text">Coaching e feedback durante i WOD</div>
+                  <div class="q-hint">
+                    I coach danno indicazioni utili, correggono, motivano?
+                  </div>
+                </div>
+              </div>
+              <div class="q-value-badge" id="qval-4">–</div>
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="10"
+              value="5"
+              id="q-4"
+              oninput="updateSlider(4)"
+            />
+            <div class="slider-labels">
+              <span>1 · Assente</span><span>10 · Eccellente</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="submit-btn" id="submit-btn" onclick="submitFeedback()">
+        INVIA FEEDBACK ANONIMO
+      </button>
+      <div class="submit-hint">🔒 Nessun dato personale viene salvato</div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success-overlay" id="success-overlay">
+      <div class="success-icon">🔥</div>
+      <div class="success-title">Grazie!</div>
+      <div class="success-sub">
+        Il tuo feedback è stato inviato anonimamente ai coach.
+      </div>
+      <div class="success-summary" id="success-summary"></div>
+      <button class="success-reset" onclick="resetForm()">
+        Invia un altro feedback
+      </button>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      const APPS_SCRIPT_URL =
+        "https://script.google.com/macros/s/AKfycbx4dJc8azVk2yMQuEp9xMKIZjaFH8ayAnOPMeRCJkCSic3LSMX3n45wMii5pstTM3TkpA/exec";
+
+      // ── Settimana automatica (lun–dom) ─────────────────────────────────
+      const today = new Date();
+
+      function getWeekBounds(d) {
+        const day = d.getDay();
+        const diffToMon = day === 0 ? -6 : 1 - day;
+        const mon = new Date(d);
+        mon.setDate(d.getDate() + diffToMon);
+        const sun = new Date(mon);
+        sun.setDate(mon.getDate() + 6);
+        return { mon, sun };
+      }
+
+      function getISOWeek(d) {
+        const date = new Date(
+          Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()),
+        );
+        const dayNum = date.getUTCDay() || 7;
+        date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+        return Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
+      }
+
+      function fmtShort(d) {
+        return d.toLocaleDateString("it-IT", {
+          day: "numeric",
+          month: "short",
+        });
+      }
+
+      function fmtFull(d) {
+        return d.toLocaleDateString("it-IT", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+        });
+      }
+
+      const weekNum = getISOWeek(today);
+      const { mon, sun } = getWeekBounds(today);
+      const weekLabel = `Settimana ${weekNum}`;
+      const weekDates = `${fmtShort(mon)} – ${fmtShort(sun)}`;
+
+      document.getElementById("today-str").textContent = fmtFull(today);
+      document.getElementById("week-title").textContent = weekLabel;
+      document.getElementById("week-dates").textContent = weekDates;
+      document.getElementById("week-num").textContent = `W${weekNum}`;
+
+      if (APPS_SCRIPT_URL !== "YOUR_APPS_SCRIPT_URL_HERE") {
+        document.getElementById("config-notice").style.display = "none";
+      }
+
+      // ── State ──────────────────────────────────────────────────────────
+      let selectedVote = null;
+      const sliderLabels = [
+        "Atmosfera",
+        "Programmazione",
+        "Varietà",
+        "Intensità",
+        "Coaching",
+      ];
+
+      function selectVote(v) {
+        selectedVote = v;
+        document
+          .getElementById("btn-up")
+          .classList.toggle("selected", v === "up");
+        document
+          .getElementById("btn-down")
+          .classList.toggle("selected", v === "down");
+      }
+
+      function updateSlider(idx) {
+        const val = parseInt(document.getElementById(`q-${idx}`).value);
+        const badge = document.getElementById(`qval-${idx}`);
+        badge.textContent = val;
+        badge.className =
+          "q-value-badge " + (val <= 3 ? "low" : val <= 6 ? "mid" : "high");
+        const pct = ((val - 1) / 9) * 100;
+        const color = val <= 3 ? "#ff4747" : val <= 6 ? "#ffaa47" : "#e8ff47";
+        document.getElementById(`q-${idx}`).style.background =
+          `linear-gradient(to right, ${color} ${pct}%, var(--border) ${pct}%)`;
+      }
+
+      function showToast(msg, isError = false) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.className = "toast show" + (isError ? " error" : "");
+        setTimeout(() => (t.className = "toast"), 3000);
+      }
+
+      async function submitFeedback() {
+        if (!selectedVote) {
+          showToast("Seleziona 👍 o 👎 per il WOD di oggi!", true);
+          return;
+        }
+
+        const btn = document.getElementById("submit-btn");
+        btn.disabled = true;
+        btn.textContent = "INVIO IN CORSO...";
+
+        const sliderValues = {};
+        sliderLabels.forEach((label, i) => {
+          sliderValues[label] = parseInt(
+            document.getElementById(`q-${i}`).value,
+          );
+        });
+
+        const payload = {
+          action: "submitFeedback",
+          date: today.toISOString().split("T")[0],
+          weekLabel,
+          weekDates,
+          weekNumber: weekNum,
+          vote: selectedVote,
+          sliders: sliderValues,
+          timestamp: new Date().toISOString(),
+        };
+
+        try {
+          if (APPS_SCRIPT_URL !== "YOUR_APPS_SCRIPT_URL_HERE") {
+            await fetch(APPS_SCRIPT_URL, {
+              method: "POST",
+              mode: "no-cors",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+          } else {
+            await new Promise((r) => setTimeout(r, 700));
+          }
+
+          const rows = [
+            {
+              label: "WOD oggi",
+              val: selectedVote === "up" ? "👍 Piaciuto" : "👎 Non convinto",
+            },
+            ...Object.entries(sliderValues).map(([k, v]) => ({
+              label: k,
+              val: `${v}/10`,
+            })),
+          ];
+
+          document.getElementById("success-summary").innerHTML = rows
+            .map(
+              (r) =>
+                `<div class="success-row"><span class="label">${r.label}</span><span class="val">${r.val}</span></div>`,
+            )
+            .join("");
+
+          document.getElementById("success-overlay").classList.add("show");
+        } catch (e) {
+          showToast("Errore di connessione. Riprova.", true);
+          btn.disabled = false;
+          btn.textContent = "INVIA FEEDBACK ANONIMO";
+        }
+      }
+
+      function resetForm() {
+        selectedVote = null;
+        document.getElementById("btn-up").classList.remove("selected");
+        document.getElementById("btn-down").classList.remove("selected");
+        [0, 1, 2, 3, 4].forEach((i) => {
+          const el = document.getElementById(`q-${i}`);
+          el.value = 5;
+          el.style.background = "";
+          document.getElementById(`qval-${i}`).textContent = "–";
+          document.getElementById(`qval-${i}`).className = "q-value-badge";
+          document.getElementById(`q-item-${i}`).classList.remove("touched");
+        });
+        document.getElementById("submit-btn").disabled = false;
+        document.getElementById("submit-btn").textContent =
+          "INVIA FEEDBACK ANONIMO";
+        document.getElementById("success-overlay").classList.remove("show");
+      }
+    </script>
+  </body>
+</html>
